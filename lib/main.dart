@@ -2,118 +2,99 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class MyApp extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Sketchfab 3D Model',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(),
-    );
-  }
+  _MyAppState createState() => _MyAppState();
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class _MyAppState extends State<MyApp> {
+  int _selectedIndex = 0;
+  late final WebViewController _webViewController;
+  final PageController _pageController = PageController();
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  late WebViewController _webViewController;
+  final List<String> sketchfabUrls = [
+    "https://sketchfab.com/models/b8f38e5911034412a545a6aaef4e4bb1/embed?camera=0,0,10", // Default view
+    "https://sketchfab.com/models/b8f38e5911034412a545a6aaef4e4bb1/embed?camera=0,10,5", // Adjusted for second tab
+    "https://sketchfab.com/models/b8f38e5911034412a545a6aaef4e4bb1/embed?camera=10,0,0", // Adjusted for third tab
+  ];
 
   @override
   void initState() {
     super.initState();
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(
-          'https://sketchfab.com/models/b8f38e5911034412a545a6aaef4e4bb1/embed')); // Replace with your Sketchfab model ID
+      ..loadRequest(Uri.parse(sketchfabUrls[_selectedIndex]));
+  }
+
+  void _onTabChanged(int index) {
+    setState(() {
+      _selectedIndex = index;
+      _pageController.jumpToPage(index);
+      _webViewController.loadRequest(Uri.parse(sketchfabUrls[index])); // Update camera view
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.sizeOf(context).height;
-
-    return Scaffold(
-      backgroundColor: Colors.blue.shade50,
-      body: SafeArea(
-        child: Stack(
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Column(
           children: [
-            // WebView to load Sketchfab 3D model
-            WebViewWidget(controller: _webViewController),
-
-            // UI Elements
-            PageView(
-              children: [
-                ListView.builder(
-                  padding: EdgeInsets.fromLTRB(12, height * 0.8, 12, 100),
-                  itemCount: 10,
-                  itemBuilder: (context, index) => Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Image.asset('assets/image1.jpg',
-                              fit: BoxFit.cover, width: 70, height: 70),
-                          const Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'A simple way to stay healthy',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    'Dr Babak',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const Icon(Icons.location_on, color: Colors.red),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                ClipPath(
-                  clipper: InvertedCircleClipper(),
-                  child: Container(color: Colors.white),
-                ),
-              ],
+            // 3D Model Viewer (WebViewWidget)
+            Expanded(
+              flex: 3,
+              child: WebViewWidget(controller: _webViewController),
             ),
+
+            // PageView for content
+            Expanded(
+              flex: 2,
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: _onTabChanged,
+                children: [
+                  _buildContentPage("Daily Goals", ["Calories: 1200", "Steps: 5000", "Sleep: 7 hrs"]),
+                  _buildContentPage("Journal", ["Morning Walk", "Lunch Break", "Workout"]),
+                  _buildContentPage("Profile", ["Name: John Doe", "Age: 30", "Weight: 75kg"]),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        // Bottom Navigation
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onTabChanged,
+          items: [
+            BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: "Goals"),
+            BottomNavigationBarItem(icon: Icon(Icons.book), label: "Journal"),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
           ],
         ),
       ),
     );
   }
-}
 
-class InvertedCircleClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) => Path()
-    ..addOval(Rect.fromCircle(
-        center: Offset(size.width / 2, size.height / 2),
-        radius: size.width * 0.45))
-    ..addRect(Rect.fromLTRB(0, 0, size.width, size.height))
-    ..fillType = PathFillType.evenOdd;
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+  Widget _buildContentPage(String title, List<String> items) {
+    return Column(
+      children: [
+        Text(title, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Expanded(
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              return Card(
+                child: ListTile(title: Text(items[index])),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
 }
