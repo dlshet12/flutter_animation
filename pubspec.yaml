@@ -30,9 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  o3d: ^3.1.0
-  cupertino_icons: ^1.0.8
-  webview_flutter: ^4.4.4
+
+  vector_math: any
+
+
 
 
 dev_dependencies:

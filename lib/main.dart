@@ -1,100 +1,79 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:vector_math/vector_math_64.dart' as vmath;
 
 void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  int _selectedIndex = 0;
-  late final WebViewController _webViewController;
-  final PageController _pageController = PageController();
-
-  final List<String> sketchfabUrls = [
-    "https://sketchfab.com/models/b8f38e5911034412a545a6aaef4e4bb1/embed?camera=0,0,10", // Default view
-    "https://sketchfab.com/models/b8f38e5911034412a545a6aaef4e4bb1/embed?camera=0,10,5", // Adjusted for second tab
-    "https://sketchfab.com/models/b8f38e5911034412a545a6aaef4e4bb1/embed?camera=10,0,0", // Adjusted for third tab
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _webViewController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(sketchfabUrls[_selectedIndex]));
-  }
-
-  void _onTabChanged(int index) {
-    setState(() {
-      _selectedIndex = index;
-      _pageController.jumpToPage(index);
-      _webViewController.loadRequest(Uri.parse(sketchfabUrls[index])); // Update camera view
-    });
-  }
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: Column(
-          children: [
-            // 3D Model Viewer (WebViewWidget)
-            Expanded(
-              flex: 3,
-              child: WebViewWidget(controller: _webViewController),
-            ),
-
-            // PageView for content
-            Expanded(
-              flex: 2,
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: _onTabChanged,
-                children: [
-                  _buildContentPage("Daily Goals", ["Calories: 1200", "Steps: 5000", "Sleep: 7 hrs"]),
-                  _buildContentPage("Journal", ["Morning Walk", "Lunch Break", "Workout"]),
-                  _buildContentPage("Profile", ["Name: John Doe", "Age: 30", "Weight: 75kg"]),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        // Bottom Navigation
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onTabChanged,
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: "Goals"),
-            BottomNavigationBarItem(icon: Icon(Icons.book), label: "Journal"),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-          ],
+        backgroundColor: Colors.black,
+        body: Center(
+          child: ThreeDAnimatedBox(),
         ),
       ),
     );
   }
+}
 
-  Widget _buildContentPage(String title, List<String> items) {
-    return Column(
-      children: [
-        Text(title, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        Expanded(
-          child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return Card(
-                child: ListTile(title: Text(items[index])),
-              );
-            },
+class ThreeDAnimatedBox extends StatefulWidget {
+  @override
+  _ThreeDAnimatedBoxState createState() => _ThreeDAnimatedBoxState();
+}
+
+class _ThreeDAnimatedBoxState extends State<ThreeDAnimatedBox>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        double angle = _controller.value * 2 * pi;
+        return Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.005) // Perspective depth
+            ..rotateX(angle)
+            ..rotateY(angle / 2),
+          child: Container(
+            width: 150,
+            height: 150,
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blueAccent.withOpacity(0.5),
+                  blurRadius: 10,
+                  spreadRadius: 3,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
