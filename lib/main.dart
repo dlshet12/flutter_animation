@@ -158,12 +158,11 @@ class _ThreeDAnimatedBoxState extends State<ThreeDAnimatedBox>
       child: GestureDetector(
         onPanUpdate: _onPanUpdate,
         onTap: _onTap,
-      child: AnimatedBuilder(
+     child: AnimatedBuilder(
   animation: _controller,
   builder: (context, child) {
- double angle = _controller.value * 2 * pi;
+    double angle = _controller.value * 2 * pi;
 
-    
     return AnimatedOpacity(
       duration: Duration(seconds: 1),
       opacity: _opacity,
@@ -171,9 +170,8 @@ class _ThreeDAnimatedBoxState extends State<ThreeDAnimatedBox>
         alignment: Alignment.center,
         transform: Matrix4.identity()
           ..setEntry(3, 2, 0.005) // Perspective depth
-          ..rotateX(_rotationX + angle / 2)
-          ..rotateY(_rotationY + angle / 3)
-          ..scale(_scale),
+          ..rotateX(_rotationX + angle)  // Apply full smooth rotation
+          ..rotateY(_rotationY + angle),
         child: Container(
           width: 150,
           height: 150,
@@ -193,6 +191,7 @@ class _ThreeDAnimatedBoxState extends State<ThreeDAnimatedBox>
     );
   },
 ),
+
 
       ),
     );
