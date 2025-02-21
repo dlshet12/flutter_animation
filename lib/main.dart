@@ -158,39 +158,42 @@ class _ThreeDAnimatedBoxState extends State<ThreeDAnimatedBox>
       child: GestureDetector(
         onPanUpdate: _onPanUpdate,
         onTap: _onTap,
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            double angle = _controller.value * 2 * pi;
-            return AnimatedOpacity(
-              duration: Duration(seconds: 1),
-              opacity: _opacity,
-              child: Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.identity()
-                  ..setEntry(3, 2, 0.005) // Perspective depth
-                  ..rotateX(_rotationX + angle / 2)
-                  ..rotateY(_rotationY + angle / 3)
-                  ..scale(_scale),
-                child: Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: _boxColor,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _boxColor.withOpacity(0.5),
-                        blurRadius: 10,
-                        spreadRadius: 3,
-                      ),
-                    ],
-                  ),
-                ),
+      child: AnimatedBuilder(
+  animation: _controller,
+  builder: (context, child) {
+ double angle = _controller.value * 2 * pi;
+
+    
+    return AnimatedOpacity(
+      duration: Duration(seconds: 1),
+      opacity: _opacity,
+      child: Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.005) // Perspective depth
+          ..rotateX(_rotationX + angle / 2)
+          ..rotateY(_rotationY + angle / 3)
+          ..scale(_scale),
+        child: Container(
+          width: 150,
+          height: 150,
+          decoration: BoxDecoration(
+            color: _boxColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: _boxColor.withOpacity(0.5),
+                blurRadius: 10,
+                spreadRadius: 3,
               ),
-            );
-          },
+            ],
+          ),
         ),
+      ),
+    );
+  },
+),
+
       ),
     );
   }
